@@ -95,14 +95,18 @@ Struttura dell'app:
 - Pressione lunga su un contatto → "Elimina?". *(scelta di Claude: senza, i contatti vecchi si accumulano)*
 
 ### Flusso di invio
-1. L'app salva `lastContactId` e "arma" il servizio: invio in attesa = `{numero, testo, timestamp}`.
+1. L'app salva `lastContactId` e "arma" il servizio: invio in attesa = `{numero, nome, testo, timestamp}`.
 2. Apre `https://wa.me/<cifre>?text=<testo codificato>` con `setPackage("com.whatsapp")`.
    WhatsApp non installato → toast di errore, nient'altro.
 3. Il servizio (filtrato su `com.whatsapp`) riceve gli eventi della finestra.
    Se l'invio è armato e sono passati meno di **5 s**: cerca il tasto invio
    (id `com.whatsapp:id/send`, in alternativa la content description "Invia"/"Send").
    Preme solo se il campo di testo della chat (`com.whatsapp:id/entry`) contiene
-   esattamente il testo armato: così non invia mai su una chat diversa. Poi
+   esattamente il testo armato **e** il nome in testata della chat
+   (`com.whatsapp:id/conversation_contact_name`) è quello del contatto: così non
+   invia mai su una chat diversa, nemmeno se lì c'è una bozza identica. Testata
+   non trovata → nessun invio (ripiego manuale). Va a home solo se il click è
+   riuscito. Poi
    esegue `ACTION_CLICK` e disarma. *(scelta di Claude, dalla revisione)*
 4. Dopo il click: `performGlobalAction(GLOBAL_ACTION_HOME)`, quindi si torna alla
    home, da dove l'utente ha aperto l'app. FastReply chiude la sua Activity prima

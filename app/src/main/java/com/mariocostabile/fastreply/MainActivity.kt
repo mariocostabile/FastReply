@@ -116,7 +116,7 @@ class MainActivity : ComponentActivity() {
 
     private fun onSend(c: Contact, text: String) {
         update(data.copy(lastContactId = c.id))
-        if (send(this, c.phone, text)) finish()
+        if (send(this, c.phone, c.name, text)) finish()
         else Toast.makeText(this, "WhatsApp non installato", Toast.LENGTH_SHORT).show()
     }
 
@@ -242,8 +242,8 @@ private fun ConfirmDelete(what: String, onYes: () -> Unit, onClose: () -> Unit) 
 }
 
 /** Arms SendService and opens the WhatsApp chat with [text] prefilled. False if WhatsApp is missing. */
-private fun send(context: Context, phone: String, text: String): Boolean {
-    Pending.value = PendingSend(phone, text, System.currentTimeMillis())
+private fun send(context: Context, phone: String, name: String, text: String): Boolean {
+    Pending.value = PendingSend(phone, name, text, System.currentTimeMillis())
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(buildWaUri(phone, text)))
         .setPackage("com.whatsapp")
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

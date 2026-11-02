@@ -19,13 +19,24 @@ class SendService : AccessibilityService() {
         }
         val root = rootInActiveWindow ?: return
         val entry = root.findAccessibilityNodeInfosByViewId("com.whatsapp:id/entry").firstOrNull()
-        if (!shouldSend(p, entry?.text?.toString(), now)) return
-        val send = root.findAccessibilityNodeInfosByViewId("com.whatsapp:id/send").firstOrNull()
-            ?: findByDescription(root, setOf("Invia", "Send"))
-            ?: return
+        val header = root.findAccessibilityNodeInfosByViewId("com.whatsapp:id/conversation_contact_name").firstOrNull()
+        if (!shouldSend(p, header?.text?.toString(), entry?.text?.toString(), now)) return
+        val send = (root.findAccessibilityNodeInfosByViewId("com.whatsapp:id/send").firstOrNull()
+            ?: findByDescription(root, setOf("Invia", "Send")))
+            ?.let { clickableSelfOrParent(it) }
+            ?: return // button not ready yet: wait for the next event within the window
         Pending.value = null // disarm before clicking: two close events must never send twice
-        send.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-        performGlobalAction(GLOBAL_ACTION_HOME)
+        // Go home only if the tap really happened, otherwise stay in the chat so the user sees the unsent text.
+        if (send.performAction(AccessibilityNodeInfo.ACTION_CLICK)) performGlobalAction(GLOBAL_ACTION_HOME)
+    }
+
+    private fun clickableSelfOrParent(node: AccessibilityNodeInfo): AccessibilityNodeInfo? {
+        var n: AccessibilityNodeInfo? = node
+        while (n != null) {
+            if (n.isClickable && n.isEnabled && n.isVisibleToUser) return n
+            n = n.parent
+        }
+        return null
     }
 
     override fun onInterrupt() {}
