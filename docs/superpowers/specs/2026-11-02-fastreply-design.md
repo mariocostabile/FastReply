@@ -147,7 +147,7 @@ Lo si riscrive per intero a ogni modifica: con una manciata di contatti va benis
 ## Build su GitHub (richiesta dell'utente)
 
 - Workflow GitHub Actions `.github/workflows/build.yml`: a ogni push esegue i
-  unit test e `assembleDebug`, poi carica `app-debug.apk` come artifact
+  unit test e `assembleRelease`, poi carica la APK `FastReply` come artifact
   scaricabile dalla pagina della run.
 - La APK è una build **release** (non debuggable), firmata con una chiave che sta
   solo nei Secrets di GitHub (`KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`), mai nel
