@@ -149,10 +149,10 @@ Lo si riscrive per intero a ogni modifica: con una manciata di contatti va benis
 - Workflow GitHub Actions `.github/workflows/build.yml`: a ogni push esegue i
   unit test e `assembleDebug`, poi carica `app-debug.apk` come artifact
   scaricabile dalla pagina della run.
-- La APK di debug è firmata con un `debug.keystore` salvato nel repo. Senza,
-  ogni run genera una chiave diversa: Android rifiuta l'aggiornamento e
-  costringe a disinstallare, perdendo i dati. *(scelta di Claude: è una chiave
-  di debug, non di rilascio, quindi metterla nel repo non è un rischio)*
+- La APK è una build **release** (non debuggable), firmata con una chiave che sta
+  solo nei Secrets di GitHub (`KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`), mai nel
+  repo. Senza i Secrets la APK esce non firmata. La prima chiave di debug era
+  committata in un repo pubblico ed è stata sostituita.
 
 ## Test
 

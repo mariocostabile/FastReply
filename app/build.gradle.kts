@@ -16,13 +16,22 @@ android {
         versionName = "1.0"
     }
 
+    // Release key comes from GitHub Actions secrets, never from the repo.
+    val keystorePath = System.getenv("KEYSTORE_PATH")
     signingConfigs {
-        // Debug key committed so every CI build can update the installed app without uninstalling.
-        getByName("debug") {
-            storeFile = file("debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+        if (keystorePath != null) {
+            create("release") {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = "fastreply"
+                keyPassword = System.getenv("KEYSTORE_PASSWORD")
+            }
+        }
+    }
+    buildTypes {
+        release {
+            // Without the secret (local build, fork PR) the release APK is left unsigned.
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 
