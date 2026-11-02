@@ -1,7 +1,7 @@
 # FastReply — Design
 
 Data: 2026-11-02
-Stato: bozza da approvare
+Stato: approvato
 
 ## Intento
 
@@ -139,6 +139,16 @@ Lo si riscrive per intero a ogni modifica: con una manciata di contatti va benis
 - `minSdk 26`. *(scelta di Claude)*
 - `AccessibilityService` con `packageNames="com.whatsapp"`, `canRetrieveWindowContent=true`,
   eventi `typeWindowStateChanged|typeWindowContentChanged`.
+
+## Build su GitHub (richiesta dell'utente)
+
+- Workflow GitHub Actions `.github/workflows/build.yml`: a ogni push esegue i
+  unit test e `assembleDebug`, poi carica `app-debug.apk` come artifact
+  scaricabile dalla pagina della run.
+- La APK di debug è firmata con un `debug.keystore` salvato nel repo. Senza,
+  ogni run genera una chiave diversa: Android rifiuta l'aggiornamento e
+  costringe a disinstallare, perdendo i dati. *(scelta di Claude: è una chiave
+  di debug, non di rilascio, quindi metterla nel repo non è un rischio)*
 
 ## Test
 
