@@ -20,7 +20,9 @@ jobs:
             echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.p12"
             echo "KEYSTORE_PATH=$RUNNER_TEMP/release.p12" >> "$GITHUB_ENV"
           else
-            echo "::warning::KEYSTORE_BASE64 secret missing, release APK will be unsigned"
+            # An unsigned APK cannot be installed: fail loudly instead of shipping one.
+            echo "::error::Secret KEYSTORE_BASE64 mancante. Vedi docs/BUILD.md per crearlo."
+            exit 1
           fi
       - run: ./gradlew testDebugUnitTest assembleRelease
         env:

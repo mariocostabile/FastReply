@@ -4,3 +4,8 @@ local.properties
 .idea/
 *.iml
 .superpowers/
+
+# signing keys must never be committed
+*.p12
+*.jks
+*.keystore
