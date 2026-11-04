@@ -19,6 +19,14 @@ android {
     // Release key comes from GitHub Actions secrets, never from the repo.
     val keystorePath = System.getenv("KEYSTORE_PATH")
     signingConfigs {
+        // shortcut: debug key committed (public!) so CI builds install over each other until the release secret is set.
+        // Remove it once KEYSTORE_BASE64 is configured, see docs/BUILD.md.
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
         if (keystorePath != null) {
             create("release") {
                 storeFile = file(keystorePath)

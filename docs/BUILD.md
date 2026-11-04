@@ -1,13 +1,17 @@
 # Build dell'APK
 
 L'APK si builda su **GitHub Actions** a ogni `git push` (o a mano: *Actions → Build APK → Run workflow*).
-Il risultato è un APK **release firmato**, scaricabile da *Actions → (run) → Artifacts → FastReply*.
+Scarica l'APK da *Actions → (run) → Artifacts*:
+- `FastReply-debug`: sempre presente, firmato con la chiave debug **pubblica** committata nel repo.
+- `FastReply-release`: solo se i secret qui sotto sono configurati.
 
-## Setup una tantum: chiave di firma
+> Debito aperto: finché la chiave debug è nel repo, chiunque può firmare un "aggiornamento" dell'app.
+> Configura la chiave release e poi rimuovi `app/debug.keystore`.
+
+## Setup chiave di firma release (da fare)
 
 Android installa un aggiornamento solo se è firmato con **la stessa chiave** della versione installata.
-La chiave vive solo nei Secrets di GitHub, mai nel repo. Senza secret la build fallisce di proposito
-(un APK non firmato non è installabile).
+La chiave vive solo nei Secrets di GitHub, mai nel repo.
 
 1. Genera la chiave (serve un JDK, `keytool` è incluso). **Usa la stessa password per entrambe le domande.**
    ```bash
@@ -32,8 +36,8 @@ La chiave vive solo nei Secrets di GitHub, mai nel repo. Senza secret la build f
 
 ## Installazione
 
-Scarica l'artifact `FastReply` (è uno zip), estrai `app-release.apk`, aprilo sul telefono.
-La prima volta che passi dalla vecchia build debug a quella release la firma cambia:
+Scarica l'artifact (è uno zip), estrai l'APK, aprilo sul telefono.
+Le build debug si installano una sopra l'altra. Il giorno che passi alla release la firma cambia:
 **disinstalla prima la vecchia app** (i contatti e i messaggi salvati vanno persi una sola volta).
 
 ## Build locale (opzionale)

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- glass chat bubble -->
+    <path
+        android:pathData="M43,31H65A14,14 0 0,1 79,45V57A14,14 0 0,1 65,71H47L34,80.5V69.2A14,14 0 0,1 29,57V45A14,14 0 0,1 43,31Z"
+        android:strokeWidth="1.2"
+        android:strokeColor="#CCFFFFFF">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="29" android:startY="31" android:endX="79" android:endY="80"
+                android:startColor="#F2FFFFFF" android:endColor="#99FFFFFF" />
+        </aapt:attr>
+    </path>
+    <!-- specular highlight on the top-left of the glass -->
+    <path
+        android:pathData="M33,50V45A10,10 0 0,1 43,35H51"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round"
+        android:strokeColor="#FFFFFFFF" />
+    <!-- lightning bolt: "fast" -->
+    <path android:pathData="M57.5,36L44,54.5H53L50,66L64.5,47H55.5L57.5,36Z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="44" android:startY="36" android:endX="64" android:endY="66"
+                android:startColor="#FF3BE58A" android:endColor="#FF0E9F5C" />
+        </aapt:attr>
+    </path>
+</vector>

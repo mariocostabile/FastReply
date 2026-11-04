@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 13+ themed icon: bubble with the bolt cut out -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M43,31H65A14,14 0 0,1 79,45V57A14,14 0 0,1 65,71H47L34,80.5V69.2A14,14 0 0,1 29,57V45A14,14 0 0,1 43,31Z M57.5,36L44,54.5H53L50,66L64.5,47H55.5L57.5,36Z" />
+</vector>

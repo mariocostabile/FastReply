@@ -20,11 +20,12 @@ jobs:
             echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.p12"
             echo "KEYSTORE_PATH=$RUNNER_TEMP/release.p12" >> "$GITHUB_ENV"
           else
-            # An unsigned APK cannot be installed: fail loudly instead of shipping one.
-            echo "::error::Secret KEYSTORE_BASE64 mancante. Vedi docs/BUILD.md per crearlo."
-            exit 1
+            echo "::warning::Secret KEYSTORE_BASE64 mancante: build solo debug (chiave pubblica). Vedi docs/BUILD.md."
           fi
-      - run: ./gradlew testDebugUnitTest assembleRelease
+      - run: ./gradlew testDebugUnitTest assembleDebug
+      - name: Build signed release
+        if: env.KEYSTORE_PATH != ''
+        run: ./gradlew assembleRelease
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
       - uses: actions/upload-artifact@v4
@@ -35,5 +36,10 @@ jobs:
           if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         with:
-          name: FastReply
-          path: app/build/outputs/apk/release/*.apk
+          name: FastReply-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
+      - uses: actions/upload-artifact@v4
+        if: env.KEYSTORE_PATH != ''
+        with:
+          name: FastReply-release
+          path: app/build/outputs/apk/release/app-release.apk
