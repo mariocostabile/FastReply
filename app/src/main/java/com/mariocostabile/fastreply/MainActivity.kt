@@ -11,45 +11,45 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.io.File
@@ -67,12 +67,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         store = Store(File(filesDir, "data.json"))
         data = store.load()
         if (data.current() == null && savedInstanceState == null) openPicker()
         setContent {
-            MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
-                Surface(Modifier.fillMaxSize()) {
+            GlassTheme {
+                GlassBackground {
                     Box(Modifier.safeDrawingPadding()) {
                         if (screen == "contacts") ContactsScreen() else MessagesScreen()
                     }
@@ -120,94 +121,124 @@ class MainActivity : ComponentActivity() {
         else Toast.makeText(this, "WhatsApp non installato", Toast.LENGTH_SHORT).show()
     }
 
-    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     private fun MessagesScreen() {
         val c = data.current()
         var adding by remember { mutableStateOf(false) }
         var deleting by remember { mutableStateOf<String?>(null) }
+        val p = LocalGlass.current
 
-        Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             if (!serviceOn) {
                 Text(
                     "Attiva invio automatico (tocca qui).\nSu Android 13+ prima: Info app → ⋮ → Consenti impostazioni con limitazioni.",
                     Modifier.fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(12.dp))
-                        .clickable { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
-                        .padding(12.dp),
-                    color = MaterialTheme.colorScheme.onErrorContainer,
+                        .pressable({ startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) })
+                        .glass(RoundedCornerShape(20.dp), Danger)
+                        .padding(16.dp),
+                    color = Color.White,
+                    fontSize = 14.sp,
                 )
             }
             if (c == null) {
-                Button(onClick = { openPicker() }, Modifier.fillMaxWidth()) { Text("Scegli un contatto") }
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    GlassButton("Scegli un contatto", { openPicker() }, Modifier.fillMaxWidth(), tint = Accent)
+                }
             } else {
-            Text(
-                "${c.name} ▾",
-                Modifier.fillMaxWidth().clickable { screen = "contacts" }.padding(vertical = 8.dp),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            LazyVerticalGrid(
-                GridCells.Adaptive(110.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 16.dp),
-            ) {
-                items(c.messages) { msg ->
-                    Tile(msg, MaterialTheme.colorScheme.primaryContainer, Modifier.combinedClickable(
-                        onClick = { onSend(c, msg) },
-                        onLongClick = { deleting = msg },
-                    ))
+                Row(
+                    Modifier.pressable({ screen = "contacts" }).glass(CircleShape).padding(start = 6.dp, end = 18.dp, top = 6.dp, bottom = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Avatar(c.name, 40)
+                    Text(c.name, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("▾", fontSize = 16.sp, color = p.textDim)
                 }
-                item {
-                    Tile("+", MaterialTheme.colorScheme.surfaceVariant, Modifier.clickable { adding = true })
+                LazyVerticalGrid(
+                    GridCells.Adaptive(110.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp),
+                ) {
+                    items(c.messages) { msg ->
+                        Tile(msg, Modifier.pressable(onClick = { onSend(c, msg) }, onLongClick = { deleting = msg }))
+                    }
+                    item {
+                        Tile("+", Modifier.pressable({ adding = true }), dim = true)
+                    }
                 }
-            }
             }
         }
 
         if (adding && c != null) {
             var text by remember { mutableStateOf("") }
-            AlertDialog(
-                onDismissRequest = { adding = false },
-                title = { Text("Nuovo messaggio") },
-                text = { OutlinedTextField(text, { text = it }, singleLine = false) },
-                confirmButton = {
-                    TextButton(onClick = {
+            val focus = remember { FocusRequester() }
+            GlassDialog(
+                title = "Nuovo messaggio",
+                onDismiss = { adding = false },
+                actions = {
+                    GlassButton("Annulla", { adding = false }, Modifier.weight(1f))
+                    GlassButton("Salva", {
                         if (text.isNotBlank()) replace(c.copy(messages = c.messages + text.trim()))
                         adding = false
-                    }) { Text("Salva") }
+                    }, Modifier.weight(1f), tint = Accent)
                 },
-                dismissButton = { TextButton(onClick = { adding = false }) { Text("Annulla") } },
-            )
+            ) {
+                // inside the dialog's composition, so the field is attached when focus is requested
+                LaunchedEffect(Unit) { focus.requestFocus() }
+                BasicTextField(
+                    text,
+                    { text = it },
+                    Modifier.fillMaxWidth()
+                        .heightIn(min = 96.dp)
+                        .glass(RoundedCornerShape(18.dp))
+                        .padding(14.dp)
+                        .focusRequester(focus),
+                    textStyle = TextStyle(color = p.text, fontSize = 17.sp),
+                    cursorBrush = SolidColor(Accent),
+                )
+            }
         }
         deleting?.let { msg ->
             if (c != null) ConfirmDelete("\"$msg\"", onYes = { replace(c.copy(messages = c.messages - msg)) }, onClose = { deleting = null })
         }
     }
 
-    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     private fun ContactsScreen() {
         var deleting by remember { mutableStateOf<Contact?>(null) }
         BackHandler { screen = "messages" }
+        val p = LocalGlass.current
+        val current = data.current()
 
-        Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Contatti", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            Button(onClick = { openPicker() }, Modifier.fillMaxWidth()) { Text("Aggiungi dalla rubrica") }
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box(Modifier.size(44.dp).pressable({ screen = "messages" }).glass(CircleShape), contentAlignment = Alignment.Center) {
+                    Text("‹", fontSize = 28.sp, fontWeight = FontWeight.Medium)
+                }
+                Text("Contatti", fontSize = 32.sp, fontWeight = FontWeight.Bold)
+            }
+            GlassButton("Aggiungi dalla rubrica", { openPicker() }, Modifier.fillMaxWidth(), tint = Accent)
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
                 items(data.contacts, key = { it.id }) { c ->
-                    Text(
-                        c.name,
+                    Row(
                         Modifier.fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
-                            .combinedClickable(
+                            .pressable(
                                 onClick = { update(data.copy(lastContactId = c.id)); screen = "messages" },
                                 onLongClick = { deleting = c },
                             )
-                            .padding(16.dp),
-                        fontSize = 18.sp,
-                    )
+                            .glass(RoundedCornerShape(22.dp))
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Avatar(c.name, 44)
+                        Column(Modifier.weight(1f)) {
+                            Text(c.name, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("+${c.phone}", fontSize = 13.sp, color = p.textDim)
+                        }
+                        if (c.id == current?.id) Text("✓", fontSize = 20.sp, color = Accent, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }
@@ -221,24 +252,35 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun Tile(label: String, color: androidx.compose.ui.graphics.Color, modifier: Modifier) {
+private fun Tile(label: String, modifier: Modifier, dim: Boolean = false) {
     Box(
-        Modifier.aspectRatio(1f).background(color, RoundedCornerShape(16.dp)).then(modifier).padding(8.dp),
+        Modifier.aspectRatio(1f).then(modifier).glass(RoundedCornerShape(26.dp)).padding(10.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(label, textAlign = TextAlign.Center, fontSize = if (label == "+") 36.sp else 16.sp)
+        Text(
+            label,
+            textAlign = TextAlign.Center,
+            fontSize = if (dim) 40.sp else 16.sp,
+            fontWeight = if (dim) FontWeight.Light else FontWeight.Medium,
+            color = if (dim) LocalGlass.current.textDim else LocalGlass.current.text,
+            maxLines = 5,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
 @Composable
 private fun ConfirmDelete(what: String, onYes: () -> Unit, onClose: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onClose,
-        title = { Text("Elimina?") },
-        text = { Text(what) },
-        confirmButton = { TextButton(onClick = { onYes(); onClose() }) { Text("Elimina") } },
-        dismissButton = { TextButton(onClick = onClose) { Text("Annulla") } },
-    )
+    GlassDialog(
+        title = "Elimina?",
+        onDismiss = onClose,
+        actions = {
+            GlassButton("Annulla", onClose, Modifier.weight(1f))
+            GlassButton("Elimina", { onYes(); onClose() }, Modifier.weight(1f), tint = Danger)
+        },
+    ) {
+        Text(what, fontSize = 16.sp, color = LocalGlass.current.textDim)
+    }
 }
 
 /** Arms SendService and opens the WhatsApp chat with [text] prefilled. False if WhatsApp is missing. */
